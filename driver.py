@@ -1,8 +1,10 @@
+from threading import Thread
 import pyaudio
 import wave
 import sounddevice as sd
 import soundfile as sf
 import keyboard
+import random
 
 NEED_A_MEDIC = "NEED_A_MEDIC"
 REVIVE_ME = "REVIVE_ME"
@@ -111,17 +113,20 @@ def get_device_id(device_name='CABLE Input (VB-Audio Virtual Cable)', samplerate
     raise Exception("Could not identify virtual microphone input device.")
 
 def play_audio(filename, device_id):
-    print("sd.query_devices()")
-    print(sd.query_devices())
-    for device_dict in sd.query_devices():
-        print("dict for device:")
-        print(device_dict)
-    data, fs = sf.read(filename, dtype='float32')
-    # sd.play(data=data, device='Microphone (HD Pro Webcam C920)')
-    sd.play(data=data, samplerate=fs, device=device_id)
-    sd.wait()
-    # sd.play(data, fs)
-    # sd.wait()
+    try:
+        # print("sd.query_devices()")
+        # print(sd.query_devices())
+        # for device_dict in sd.query_devices():
+        #     print("dict for device:")
+        #     print(device_dict)
+        data, fs = sf.read(filename, dtype='float32')
+        # sd.play(data=data, device='Microphone (HD Pro Webcam C920)')
+        sd.play(data=data, samplerate=fs, device=device_id)
+        sd.wait()
+    except Exception as err:
+        print(err)
+        # sd.play(data, fs)
+        # sd.wait()
 
 if __name__ == "__main__":
     # Play the mp3 file to the microphone input source.
@@ -144,6 +149,24 @@ if __name__ == "__main__":
         'default_samplerate': 44100.0
     }
     """
-
-    # Play the audio file through the microphone output
-    play_audio(audio_file, get_device_id())
+    delete_this_later = []
+    for voice_line in sound_mappings:
+        delete_this_later = delete_this_later + sound_mappings[voice_line][ALLIES] + sound_mappings[voice_line][AXIS]
+    print(delete_this_later)
+    while True:
+        try:
+            audio_file_to_play = random.choice(delete_this_later)
+            if keyboard.is_pressed('z'):
+                virtual_mic_thread = Thread(target=play_audio, kwargs={'filename': audio_file_to_play, 'device_id': get_device_id()})
+                speaker_playback_thread = Thread(target=play_audio, kwargs={'filename': audio_file_to_play, 'device_id': get_device_id(device_name='Speakers (Realtek(R) Audio)')})
+                virtual_mic_thread.start()
+                speaker_playback_thread.start()
+                virtual_mic_thread.join()
+                speaker_playback_thread.join()
+                
+                # # Play the audio file through the microphone output
+                # play_audio(audio_file_to_play, get_device_id())
+                # play_audio(audio_file_to_play, get_device_id(device_name='Speakers (Realtek(R) Audio)'))
+        except Exception as err:
+            print(err)
+            break
