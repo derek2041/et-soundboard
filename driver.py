@@ -1,6 +1,4 @@
 from threading import Thread
-import pyaudio
-import wave
 import sounddevice as sd
 import soundfile as sf
 import keyboard
@@ -25,6 +23,9 @@ MICROPHONE_INPUT_MAX_OUTPUT_CHANNELS = "MICROPHONE_INPUT_MAX_OUTPUT_CHANNELS"
 SPEAKER_OUTPUT_MAX_OUTPUT_CHANNELS_FLAG = "--speaker_output_max_output_channels"
 SPEAKER_OUTPUT_MAX_OUTPUT_CHANNELS = "SPEAKER_OUTPUT_MAX_OUTPUT_CHANNELS"
 
+# These voice lines are loaded and supported but not necessarily used.
+# Check KEY_BINDINGS to make sure there is a mapping bound for this sound
+# to use it.
 NEED_A_MEDIC = "NEED_A_MEDIC"
 REVIVE_ME = "REVIVE_ME"
 NEED_AMMO = "NEED_AMMO"
@@ -151,7 +152,7 @@ AUDIO_PLAYER_CONFIG = {
 
 def get_device_id(device_name, samplerate=44100, max_output_channels=2):
     if device_name is None or device_name == '':
-        raise Exception("Device name must be specified via cmd line flag.")
+        raise Exception("Device name must be specified via cmd line flags.")
     
     device_data = sd.query_devices()
 
@@ -232,42 +233,3 @@ if __name__ == "__main__":
         keyboard.add_hotkey(hotkey=key_combo, callback=play_audio_callback, args=(voice_line,))
 
     keyboard.wait()
-
-    """
-    while True:
-        try:
-            audio_file_to_play = random.choice(delete_this_later)
-
-            if keyboard.is_pressed('z+3'):
-                virtual_mic_thread = Thread(
-                    target=play_audio,
-                    kwargs={
-                        'filename': audio_file_to_play,
-                        'device_id': get_device_id(
-                            device_name=AUDIO_PLAYER_CONFIG[MICROPHONE_INPUT_DEVICE_NAME],
-                            samplerate=AUDIO_PLAYER_CONFIG[MICROPHONE_INPUT_SAMPLE_RATE],
-                            max_output_channels=AUDIO_PLAYER_CONFIG[MICROPHONE_INPUT_MAX_OUTPUT_CHANNELS]
-                        )
-                    }
-                )
-                speaker_playback_thread = Thread(
-                    target=play_audio,
-                    kwargs={
-                        'filename': audio_file_to_play,
-                        'device_id': get_device_id(
-                            device_name=AUDIO_PLAYER_CONFIG[SPEAKER_OUTPUT_DEVICE_NAME],
-                            samplerate=AUDIO_PLAYER_CONFIG[SPEAKER_OUTPUT_SAMPLE_RATE],
-                            max_output_channels=AUDIO_PLAYER_CONFIG[SPEAKER_OUTPUT_MAX_OUTPUT_CHANNELS]
-                        )
-                    }
-                )
-
-                virtual_mic_thread.start()
-                speaker_playback_thread.start()
-                
-                virtual_mic_thread.join()
-                speaker_playback_thread.join()
-        except Exception as err:
-            print(err)
-            break
-    """
